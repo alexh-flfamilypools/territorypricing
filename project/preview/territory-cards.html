@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  html,body{margin:0;padding:0;background:var(--bg-2);font-family:var(--font-body);}
+  .wrap{padding:18px 24px;display:flex;gap:14px;align-items:flex-start;}
+  .card{background:#fff;border:1px solid var(--line-1);border-radius:10px;box-shadow:var(--shadow-2);padding:14px 16px;width:300px;display:flex;flex-direction:column;gap:8px;}
+  .card.selected{border-left:2px solid var(--fp-pool);padding-left:15px;}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .name{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--fg-1);letter-spacing:-0.005em;}
+  .city{font-size:11px;color:var(--fg-3);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;}
+  .price{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--fg-1);font-variant-numeric:tabular-nums;}
+  .row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--fg-3);}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#FCE6C8;color:#9A5A02;}
+  .chip .d{width:7px;height:7px;border-radius:999px;background:#F5A623;}
+  .meta{display:flex;gap:14px;font-size:11px;color:var(--fg-3);font-weight:500;}
+  .meta b{color:var(--fg-2);font-weight:600;}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="card selected">
+    <div class="top">
+      <div>
+        <div class="city">Bonita Springs</div>
+        <div class="name">Pelican Landing</div>
+      </div>
+      <span class="chip"><span class="d"></span>Coastal</span>
+    </div>
+    <div class="price">~$112,500 <span style="font-family:var(--font-body);font-size:11px;font-weight:500;color:var(--fg-3);letter-spacing:0;">avg</span></div>
+    <div class="meta"><span><b>Marisol C.</b> · owner</span><span>87 leads</span></div>
+  </div>
+  <div class="card">
+    <div class="top">
+      <div>
+        <div class="city">Naples</div>
+        <div class="name">Pine Ridge Estates</div>
+      </div>
+      <span class="chip" style="background:#FBD5D2;color:#992020;"><span class="d" style="background:#E8463E"></span>Luxe</span>
+    </div>
+    <div class="price">~$148,000 <span style="font-family:var(--font-body);font-size:11px;font-weight:500;color:var(--fg-3);letter-spacing:0;">avg</span></div>
+    <div class="meta"><span><b>Devon R.</b> · owner</span><span>32 leads</span></div>
+  </div>
+</div>
+</body></html>

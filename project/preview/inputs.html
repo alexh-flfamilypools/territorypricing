@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  html,body{margin:0;padding:0;background:var(--bg-1);font-family:var(--font-body);}
+  .wrap{padding:20px 24px;display:flex;flex-direction:column;gap:12px;max-width:560px;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .lbl{font-size:11px;font-weight:600;color:var(--fg-2);text-transform:uppercase;letter-spacing:0.04em;}
+  .inp{font-family:var(--font-body);font-size:14px;color:var(--fg-1);padding:9px 12px;border:1px solid var(--line-1);border-radius:8px;background:#fff;outline:none;}
+  .inp:focus{border-color:var(--fp-pool);box-shadow:0 0 0 3px rgba(43,168,224,0.18);}
+  .inp.focused{border-color:var(--fp-pool);box-shadow:0 0 0 3px rgba(43,168,224,0.18);}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .toggle{display:inline-flex;background:var(--bg-2);border-radius:8px;padding:3px;gap:2px;}
+  .toggle button{font-family:var(--font-body);font-size:13px;font-weight:600;border:0;background:transparent;padding:6px 12px;border-radius:6px;color:var(--fg-3);cursor:pointer;}
+  .toggle button.on{background:#fff;color:var(--fg-1);box-shadow:var(--shadow-1);}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="row">
+    <div class="field"><div class="lbl">Territory name</div><input class="inp" value="Pelican Landing"/></div>
+    <div class="field"><div class="lbl">Base price</div><input class="inp focused" value="$112,500"/></div>
+  </div>
+  <div class="field">
+    <div class="lbl">Display mode</div>
+    <div class="toggle">
+      <button class="on">Tier color</button>
+      <button>Owner</button>
+      <button>Margin</button>
+    </div>
+  </div>
+</div>
+</body></html>

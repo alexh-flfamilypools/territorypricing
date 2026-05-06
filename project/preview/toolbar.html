@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  html,body{margin:0;padding:0;background:var(--bg-2);font-family:var(--font-body);}
+  .wrap{padding:18px;display:flex;flex-direction:column;gap:12px;}
+  .toolbar{background:#fff;border:1px solid var(--line-1);border-radius:10px;box-shadow:var(--shadow-2);padding:6px;display:inline-flex;gap:2px;align-items:center;}
+  .tool{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--fg-2);cursor:pointer;background:transparent;border:0;}
+  .tool:hover{background:var(--bg-2);}
+  .tool.on{background:var(--fp-pool);color:#fff;}
+  .div{width:1px;height:22px;background:var(--line-1);margin:0 4px;}
+  .lucide{width:18px;height:18px;stroke-width:1.75;}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <button class="tool on" title="Polygon"><i data-lucide="pen-tool"></i></button>
+    <button class="tool" title="Rectangle"><i data-lucide="square"></i></button>
+    <button class="tool" title="Freehand"><i data-lucide="edit-3"></i></button>
+    <button class="tool" title="Pin"><i data-lucide="map-pin"></i></button>
+    <span class="div"></span>
+    <button class="tool" title="Eraser"><i data-lucide="eraser"></i></button>
+    <button class="tool" title="Undo"><i data-lucide="corner-up-left"></i></button>
+    <button class="tool" title="Redo"><i data-lucide="corner-up-right"></i></button>
+    <span class="div"></span>
+    <button class="tool" title="Layers"><i data-lucide="layers"></i></button>
+    <button class="tool" title="Filter"><i data-lucide="sliders-horizontal"></i></button>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body></html>

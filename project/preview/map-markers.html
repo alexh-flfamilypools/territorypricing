@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  html,body{margin:0;padding:0;background:#E9F4FB;font-family:var(--font-body);}
+  .wrap{padding:24px;display:flex;gap:24px;align-items:flex-end;justify-content:center;}
+  .marker{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .pin{width:36px;height:44px;filter:drop-shadow(0 4px 8px rgba(14,34,51,0.18));}
+  .pin.active{filter:drop-shadow(0 6px 16px rgba(43,168,224,0.5));transform:scale(1.1);}
+  .label{font-size:10px;font-weight:600;color:var(--fg-2);background:#fff;padding:2px 6px;border-radius:4px;border:1px solid var(--line-1);box-shadow:var(--shadow-1);}
+  .price-tag{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line-1);border-radius:999px;padding:3px 10px 3px 6px;box-shadow:var(--shadow-2);font-size:12px;font-weight:700;color:var(--fg-1);font-variant-numeric:tabular-nums;}
+  .price-tag .d{width:10px;height:10px;border-radius:999px;}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="marker">
+    <svg class="pin" viewBox="0 0 32 40" style="color:#7FCBE8"><path d="M16 1 C7.7 1 1 7.7 1 16 C1 26.5 16 39 16 39 C16 39 31 26.5 31 16 C31 7.7 24.3 1 16 1 Z" fill="currentColor" stroke="#0E2233" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="16" r="5.5" fill="#fff"/></svg>
+    <div class="label">Standard</div>
+  </div>
+  <div class="marker">
+    <svg class="pin" viewBox="0 0 32 40" style="color:#2BA8E0"><path d="M16 1 C7.7 1 1 7.7 1 16 C1 26.5 16 39 16 39 C16 39 31 26.5 31 16 C31 7.7 24.3 1 16 1 Z" fill="currentColor" stroke="#0E2233" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="16" r="5.5" fill="#fff"/></svg>
+    <div class="label">Premium</div>
+  </div>
+  <div class="marker">
+    <svg class="pin active" viewBox="0 0 32 40" style="color:#F5A623"><path d="M16 1 C7.7 1 1 7.7 1 16 C1 26.5 16 39 16 39 C16 39 31 26.5 31 16 C31 7.7 24.3 1 16 1 Z" fill="currentColor" stroke="#0E2233" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="16" r="5.5" fill="#fff"/></svg>
+    <div class="label">Coastal · active</div>
+  </div>
+  <div class="marker">
+    <svg class="pin" viewBox="0 0 32 40" style="color:#E8463E"><path d="M16 1 C7.7 1 1 7.7 1 16 C1 26.5 16 39 16 39 C16 39 31 26.5 31 16 C31 7.7 24.3 1 16 1 Z" fill="currentColor" stroke="#0E2233" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="16" r="5.5" fill="#fff"/></svg>
+    <div class="price-tag"><span class="d" style="background:#E8463E"></span>$148k</div>
+  </div>
+  <div class="marker">
+    <svg class="pin" viewBox="0 0 32 40" style="color:#6B3FA0"><path d="M16 1 C7.7 1 1 7.7 1 16 C1 26.5 16 39 16 39 C16 39 31 26.5 31 16 C31 7.7 24.3 1 16 1 Z" fill="currentColor" stroke="#0E2233" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="16" r="5.5" fill="#fff"/></svg>
+    <div class="label">White-glove</div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  html,body{margin:0;padding:0;background:var(--bg-1);font-family:var(--font-body);}
+  .wrap{padding:20px 24px;display:flex;flex-direction:column;gap:12px;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .lbl{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);width:70px;}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;line-height:1.4;}
+  .dot{width:8px;height:8px;border-radius:999px;}
+  .tier-1{background:#E1F1F9;color:#145A93;}
+  .tier-2{background:#CFE8F4;color:#145A93;}
+  .tier-3{background:#2BA8E0;color:#fff;}
+  .tier-4{background:#FCE6C8;color:#9A5A02;}
+  .tier-5{background:#FBD5D2;color:#992020;}
+  .tier-vip{background:#E5DAF1;color:#3D1E66;}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--bg-2);color:var(--fg-2);text-transform:uppercase;letter-spacing:0.04em;}
+  .b-warn{background:rgba(245,166,35,0.15);color:#7A4A00;}
+  .b-ok{background:rgba(47,179,154,0.15);color:#13634F;}
+  .b-bad{background:rgba(232,70,62,0.15);color:#992020;}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="row">
+    <span class="lbl">tiers</span>
+    <span class="chip tier-1"><span class="dot" style="background:#7FCBE8"></span>Standard</span>
+    <span class="chip tier-2"><span class="dot" style="background:#2BA8E0"></span>Preferred</span>
+    <span class="chip tier-3"><span class="dot" style="background:#fff"></span>Premium</span>
+    <span class="chip tier-4"><span class="dot" style="background:#F5A623"></span>Coastal</span>
+    <span class="chip tier-5"><span class="dot" style="background:#E8463E"></span>Luxe</span>
+    <span class="chip tier-vip"><span class="dot" style="background:#6B3FA0"></span>White-glove</span>
+  </div>
+  <div class="row">
+    <span class="lbl">status</span>
+    <span class="badge b-ok">Active</span>
+    <span class="badge b-warn">Needs review</span>
+    <span class="badge b-bad">Permit risk</span>
+    <span class="badge">HOA approval</span>
+    <span class="badge">Builder</span>
+    <span class="badge">Saltwater only</span>
+  </div>
+</div>
+</body></html>

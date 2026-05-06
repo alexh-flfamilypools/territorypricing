@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/>
+<link rel="stylesheet" href="../colors_and_type.css"/>
+<style>
+  html,body{margin:0;padding:0;background:var(--bg-1);font-family:var(--font-body);}
+  .wrap{padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .btn{font-family:var(--font-body);font-weight:600;font-size:14px;border-radius:8px;padding:9px 14px;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;line-height:1;transition:filter 120ms var(--ease-out),background 120ms var(--ease-out);}
+  .btn-primary{background:var(--fp-pool);color:#fff;}
+  .btn-primary:hover{filter:brightness(0.94);}
+  .btn-secondary{background:var(--bg-1);color:var(--fg-1);border-color:var(--line-1);}
+  .btn-secondary:hover{background:var(--bg-2);}
+  .btn-ghost{background:transparent;color:var(--fg-2);}
+  .btn-ghost:hover{background:var(--bg-2);}
+  .btn-danger{background:#fff;color:var(--fp-coral);border-color:rgba(232,70,62,0.4);}
+  .btn-icon{width:36px;height:36px;padding:0;justify-content:center;background:#fff;border-color:var(--line-1);color:var(--fg-2);border-radius:8px;}
+  .btn-sm{font-size:13px;padding:6px 10px;}
+  .lbl{font-family:var(--font-mono);font-size:10px;color:var(--fg-3);width:80px;}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="row"><span class="lbl">primary</span>
+    <button class="btn btn-primary">Save changes</button>
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-ghost">Discard</button>
+    <button class="btn btn-danger">Delete</button>
+  </div>
+  <div class="row"><span class="lbl">small</span>
+    <button class="btn btn-primary btn-sm">New territory</button>
+    <button class="btn btn-secondary btn-sm">Duplicate</button>
+    <button class="btn btn-icon">＋</button>
+    <button class="btn btn-icon">✎</button>
+    <button class="btn btn-icon">⌫</button>
+  </div>
+</div>
+</body></html>
