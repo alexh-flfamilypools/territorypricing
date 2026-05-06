@@ -1,0 +1,91 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+:root {
+  --fp-pool:        #2BA8E0;
+  --fp-pool-deep:   #1E7BC2;
+  --fp-pool-dark:   #145A93;
+  --fp-pool-tint:   #D9F0FA;
+  --fp-pool-wash:   #F1F8FC;
+
+  --fp-coral:       #E8463E;
+  --fp-sun:         #F5A623;
+  --fp-palm:        #2FB39A;
+
+  --fp-ink:         #0E2233;
+  --fp-ink-2:       #2F4358;
+  --fp-ink-3:       #5A6D80;
+  --fp-ink-4:       #94A3B2;
+  --fp-line:        #DDE5EC;
+  --fp-line-2:      #ECF1F5;
+  --fp-surface:     #FFFFFF;
+  --fp-canvas:      #F4F7FA;
+  --fp-canvas-2:    #E9EFF4;
+
+  --fp-success:     #2FB39A;
+  --fp-warning:     #F5A623;
+  --fp-danger:      #E8463E;
+  --fp-info:        #2BA8E0;
+
+  --fp-tier-1:      #BFE3F4;
+  --fp-tier-2:      #7FCBE8;
+  --fp-tier-3:      #2BA8E0;
+  --fp-tier-4:      #F5A623;
+  --fp-tier-5:      #E8463E;
+  --fp-tier-vip:    #6B3FA0;
+
+  --fg-1: var(--fp-ink);
+  --fg-2: var(--fp-ink-2);
+  --fg-3: var(--fp-ink-3);
+  --fg-4: var(--fp-ink-4);
+  --fg-onbrand: #FFFFFF;
+
+  --bg-1: var(--fp-surface);
+  --bg-2: var(--fp-canvas);
+  --bg-3: var(--fp-canvas-2);
+
+  --line-1: var(--fp-line);
+  --line-2: var(--fp-line-2);
+
+  --accent: var(--fp-pool);
+  --accent-deep: var(--fp-pool-deep);
+
+  --font-display: "Poppins", "SF Pro Display", system-ui, sans-serif;
+  --font-body:    "Inter", -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", "SF Mono", Menlo, monospace;
+
+  --fs-display: 56px;   --lh-display: 1.05;  --tr-display: -0.02em;
+  --fs-h1:      40px;   --lh-h1:      1.1;   --tr-h1:      -0.015em;
+  --fs-h2:      28px;   --lh-h2:      1.2;   --tr-h2:      -0.01em;
+  --fs-h3:      20px;   --lh-h3:      1.3;   --tr-h3:      -0.005em;
+  --fs-body:    15px;   --lh-body:    1.5;
+  --fs-small:   13px;   --lh-small:   1.45;
+  --fs-micro:   11px;   --lh-micro:   1.35;  --tr-micro:    0.04em;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(14, 34, 51, 0.06), 0 1px 1px rgba(14, 34, 51, 0.04);
+  --shadow-2: 0 2px 6px rgba(14, 34, 51, 0.08), 0 1px 2px rgba(14, 34, 51, 0.05);
+  --shadow-3: 0 8px 24px rgba(14, 34, 51, 0.10), 0 2px 6px rgba(14, 34, 51, 0.06);
+  --shadow-4: 0 18px 48px rgba(14, 34, 51, 0.16), 0 4px 12px rgba(14, 34, 51, 0.08);
+  --shadow-pool: 0 8px 24px rgba(43, 168, 224, 0.28);
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+}
