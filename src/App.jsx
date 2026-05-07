@@ -9,12 +9,14 @@ import Inspector from './components/Inspector.jsx';
 import PinPrompt from './components/PinPrompt.jsx';
 import { DEFAULT_PALETTE } from './data/territory-data.js';
 
-// Unique ID for this browser session — used to skip our own Firestore echoes.
 const SESSION_ID = Math.random().toString(36).slice(2);
 const MAP_DOC = doc(db, 'map', 'territories');
 
 export default function App() {
   const [territories, setTerritories] = useState([]);
+  // Ref always mirrors state — callbacks use this to avoid stale closures.
+  const territoriesRef = useRef([]);
+
   const [loaded, setLoaded] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [tool, setTool] = useState('select');
@@ -27,15 +29,19 @@ export default function App() {
   const histRef = useRef({ past: [], future: [] });
   const saveTimerRef = useRef(null);
 
-  // Subscribe to Firestore — drives real-time updates for all viewers.
+  function applyTerritories(next) {
+    territoriesRef.current = next;
+    setTerritories(next);
+  }
+
+  // Subscribe to Firestore — real-time updates for all viewers.
   useEffect(() => {
     const unsub = onSnapshot(MAP_DOC, snap => {
       setLoaded(true);
-      if (!snap.exists()) { setTerritories([]); return; }
+      if (!snap.exists()) { applyTerritories([]); return; }
       const data = snap.data();
-      // Skip echoes of our own writes to avoid resetting local state.
-      if (data.updatedBy === SESSION_ID) return;
-      setTerritories(data.territories || []);
+      if (data.updatedBy === SESSION_ID) return; // skip our own writes
+      applyTerritories(data.territories || []);
       setDirty(false);
     }, err => {
       console.error('Firestore error:', err);
@@ -51,12 +57,11 @@ export default function App() {
       setDirty(false);
       setToast(`Saved · ${terrs.length} area${terrs.length === 1 ? '' : 's'}`);
     } catch (err) {
-      setToast(`Save failed: ${err.message}. Check Firestore rules.`);
+      setToast(`Save failed: ${err.message}`);
     }
     setTimeout(() => setToast(null), 3500);
   }
 
-  // Auto-save 1.5 s after the last change so viewers see updates quickly.
   function scheduleAutoSave(terrs) {
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => persistToFirestore(terrs), 1500);
@@ -69,16 +74,18 @@ export default function App() {
   }
 
   function commit(next, { history = true } = {}) {
-    if (history) pushHistory(territories);
-    setTerritories(next);
+    if (history) pushHistory(territoriesRef.current);
+    applyTerritories(next);
     setDirty(true);
     scheduleAutoSave(next);
   }
 
   function onCreate(paths) {
     const id = 't_' + Date.now().toString(36);
-    const color = DEFAULT_PALETTE[territories.length % DEFAULT_PALETTE.length];
-    commit([...territories, { id, name: '', price: '', color, paths, notes: '' }]);
+    // Use ref so we always append to the latest list, never a stale snapshot.
+    const current = territoriesRef.current;
+    const color = DEFAULT_PALETTE[current.length % DEFAULT_PALETTE.length];
+    commit([...current, { id, name: '', price: '', color, paths, notes: '' }]);
     setSelectedId(id);
     setTool('select');
     setToast('Area drawn! Give it a name and price in the panel →');
@@ -86,29 +93,29 @@ export default function App() {
   }
 
   function onUpdatePaths(id, paths) {
-    commit(territories.map(t => t.id === id ? { ...t, paths } : t));
+    commit(territoriesRef.current.map(t => t.id === id ? { ...t, paths } : t));
   }
 
   function onChangeTerritory(next) {
-    commit(territories.map(t => t.id === next.id ? next : t));
+    commit(territoriesRef.current.map(t => t.id === next.id ? next : t));
   }
 
   function onDelete(id) {
-    commit(territories.filter(t => t.id !== id));
+    commit(territoriesRef.current.filter(t => t.id !== id));
     if (selectedId === id) setSelectedId(null);
   }
 
   function onSave() {
     clearTimeout(saveTimerRef.current);
-    persistToFirestore(territories);
+    persistToFirestore(territoriesRef.current);
   }
 
   function onUndo() {
     const h = histRef.current;
     if (!h.past.length) return;
-    h.future.push(JSON.stringify(territories));
+    h.future.push(JSON.stringify(territoriesRef.current));
     const prev = JSON.parse(h.past.pop());
-    setTerritories(prev);
+    applyTerritories(prev);
     setDirty(true);
     scheduleAutoSave(prev);
   }
@@ -116,9 +123,9 @@ export default function App() {
   function onRedo() {
     const h = histRef.current;
     if (!h.future.length) return;
-    h.past.push(JSON.stringify(territories));
+    h.past.push(JSON.stringify(territoriesRef.current));
     const next = JSON.parse(h.future.pop());
-    setTerritories(next);
+    applyTerritories(next);
     setDirty(true);
     scheduleAutoSave(next);
   }
