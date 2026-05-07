@@ -1,11 +1,27 @@
-import { MapPin, X, Trash2 } from 'lucide-react';
+import { MapPin, X, Trash2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useState } from 'react';
 import { DEFAULT_PALETTE } from '../data/territory-data.js';
 
 export default function Inspector({ territory, onChange, onClose, onDelete, isEditor }) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  if (collapsed) {
+    return (
+      <aside className="fp-inspector fp-inspector-collapsed">
+        <button className="fp-list-toggle" onClick={() => setCollapsed(false)} title="Show details">
+          <ChevronLeft size={16} />
+        </button>
+      </aside>
+    );
+  }
+
   if (!territory) {
     return (
       <aside className="fp-inspector empty">
         <div className="fp-inspector-empty">
+          <button className="fp-inspector-collapse-btn" onClick={() => setCollapsed(true)} title="Hide panel">
+            <ChevronRight size={16} />
+          </button>
           <div className="fp-inspector-empty-icon"><MapPin /></div>
           <div className="fp-inspector-empty-title">Pick an area</div>
           <div className="fp-inspector-empty-body">
@@ -34,7 +50,10 @@ export default function Inspector({ territory, onChange, onClose, onDelete, isEd
         ) : (
           <div className="fp-inspector-name-view">{territory.name || 'Untitled area'}</div>
         )}
-        <button className="fp-inspector-close" onClick={onClose} aria-label="Close"><X /></button>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button className="fp-inspector-close" onClick={() => setCollapsed(true)} title="Hide panel"><ChevronRight /></button>
+          <button className="fp-inspector-close" onClick={onClose} aria-label="Close"><X /></button>
+        </div>
       </div>
 
       <div className="fp-inspector-body">
