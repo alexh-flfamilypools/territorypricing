@@ -31,6 +31,17 @@ function loadGoogleMaps(apiKey) {
   return _mapsPromise;
 }
 
+function pointInPolygon(point, ring) {
+  let inside = false;
+  const x = point.lng, y = point.lat;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i].lng, yi = ring[i].lat;
+    const xj = ring[j].lng, yj = ring[j].lat;
+    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
 const FP_MAP_STYLE = [
   { elementType: 'geometry', stylers: [{ color: '#F4F7FA' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#5A6D80' }] },
@@ -72,6 +83,9 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
   const [error, setError] = useState(null);
   const [ready, setReady] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [tooltip, setTooltip] = useState(null);
+  const territoriesRef = useRef(territories);
+  useEffect(() => { territoriesRef.current = territories; }, [territories]);
 
   // Keep refs to latest callbacks so event listeners don't go stale.
   // This is the key fix: listeners are created once on mount but must always
@@ -142,6 +156,13 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
           const p = ac.getPlace();
           if (p.geometry?.viewport) map.fitBounds(p.geometry.viewport);
           else if (p.geometry?.location) { map.setCenter(p.geometry.location); map.setZoom(13); }
+          if (p.geometry?.location) {
+            const pt = { lat: p.geometry.location.lat(), lng: p.geometry.location.lng() };
+            const match = territoriesRef.current.find(t =>
+              (t.paths || []).some(ring => pointInPolygon(pt, ring))
+            );
+            if (match) onSelectRef.current?.(match.id);
+          }
         });
       }
 
@@ -187,6 +208,17 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
         poly.setMap(map);
         // Use refs so these listeners always call the current callbacks.
         poly.addListener('click', () => onSelectRef.current?.(t.id));
+        poly.addListener('mouseover', e => {
+          const territory = territoriesRef.current.find(x => x.id === t.id);
+          if (!territory || (!territory.name && !territory.price)) return;
+          const rect = hostRef.current.getBoundingClientRect();
+          setTooltip({ x: e.domEvent.clientX - rect.left, y: e.domEvent.clientY - rect.top, name: territory.name || 'Unnamed area', price: territory.price });
+        });
+        poly.addListener('mousemove', e => {
+          const rect = hostRef.current.getBoundingClientRect();
+          setTooltip(prev => prev ? { ...prev, x: e.domEvent.clientX - rect.left, y: e.domEvent.clientY - rect.top } : null);
+        });
+        poly.addListener('mouseout', () => setTooltip(null));
         const persist = () => {
           if (!onUpdatePathsRef.current) return;
           const newPaths = poly.getPaths().getArray().map(p =>
@@ -230,6 +262,12 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
           {tool === 'polygon'
             ? 'Click to add points · Click the first point to close the shape'
             : 'Click and drag to draw a rectangle'}
+        </div>
+      )}
+      {tooltip && (
+        <div className="fp-map-tooltip" style={{ left: tooltip.x + 14, top: tooltip.y }}>
+          <div className="fp-tooltip-name">{tooltip.name}</div>
+          {tooltip.price && <div className="fp-tooltip-price">${Number(tooltip.price).toLocaleString()}</div>}
         </div>
       )}
     </div>
