@@ -45,11 +45,15 @@ export default function App() {
   }, []);
 
   async function persistToFirestore(terrs) {
-    await setDoc(MAP_DOC, { territories: terrs, updatedAt: Date.now(), updatedBy: SESSION_ID });
-    setSavedAt('just now');
-    setDirty(false);
-    setToast(`Saved · ${terrs.length} area${terrs.length === 1 ? '' : 's'}`);
-    setTimeout(() => setToast(null), 2500);
+    try {
+      await setDoc(MAP_DOC, { territories: terrs, updatedAt: Date.now(), updatedBy: SESSION_ID });
+      setSavedAt('just now');
+      setDirty(false);
+      setToast(`Saved · ${terrs.length} area${terrs.length === 1 ? '' : 's'}`);
+    } catch (err) {
+      setToast(`Save failed: ${err.message}. Check Firestore rules.`);
+    }
+    setTimeout(() => setToast(null), 3500);
   }
 
   // Auto-save 1.5 s after the last change so viewers see updates quickly.
@@ -77,6 +81,8 @@ export default function App() {
     commit([...territories, { id, name: '', price: '', color, paths, notes: '' }]);
     setSelectedId(id);
     setTool('select');
+    setToast('Area drawn! Give it a name and price in the panel →');
+    setTimeout(() => setToast(null), 3000);
   }
 
   function onUpdatePaths(id, paths) {
@@ -198,7 +204,7 @@ export default function App() {
           isEditor={isEditor}
         />
       </div>
-      {toast && <div className="fp-toast ok">{toast}</div>}
+      {toast && <div className={'fp-toast' + (toast.startsWith('Save failed') ? ' error' : '')}>{toast}</div>}
     </div>
   );
 }

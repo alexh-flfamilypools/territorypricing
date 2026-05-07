@@ -51,7 +51,7 @@ const FP_MAP_STYLE = [
 function drawOptions() {
   return {
     fillColor: '#2BA8E0',
-    fillOpacity: 0.4,
+    fillOpacity: 0.35,
     strokeColor: '#2BA8E0',
     strokeOpacity: 0.95,
     strokeWeight: 2,
@@ -71,7 +71,19 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
   const polysRef = useRef(new Map());
   const [error, setError] = useState(null);
   const [ready, setReady] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
 
+  // Keep refs to latest callbacks so event listeners don't go stale.
+  // This is the key fix: listeners are created once on mount but must always
+  // call the current version of these functions.
+  const onCreateRef = useRef(onCreate);
+  const onUpdatePathsRef = useRef(onUpdatePaths);
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => { onCreateRef.current = onCreate; }, [onCreate]);
+  useEffect(() => { onUpdatePathsRef.current = onUpdatePaths; }, [onUpdatePaths]);
+  useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
+
+  // Init map once
   useEffect(() => {
     let cancelled = false;
     loadGoogleMaps(apiKey).then(google => {
@@ -112,7 +124,14 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
         }
         ev.overlay.setMap(null);
         dm.setDrawingMode(null);
-        onCreate(paths);
+        setIsDrawing(false);
+        // Use ref so we always call the current callback, not a stale one.
+        if (onCreateRef.current) onCreateRef.current(paths);
+      });
+
+      // Track when user starts drawing their first point
+      google.maps.event.addListener(dm, 'drawingmode_changed', () => {
+        setIsDrawing(!!dm.getDrawingMode());
       });
 
       const input = document.getElementById('fp-search-input');
@@ -131,17 +150,17 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
     return () => { cancelled = true; };
   }, []);
 
+  // Set drawing tool
   useEffect(() => {
     const dm = drawingMgrRef.current;
     if (!dm || !window.google) return;
     const dt = window.google.maps.drawing.OverlayType;
-    dm.setDrawingMode(
-      tool === 'polygon' ? dt.POLYGON :
-      tool === 'rectangle' ? dt.RECTANGLE :
-      null
-    );
+    const mode = tool === 'polygon' ? dt.POLYGON : tool === 'rectangle' ? dt.RECTANGLE : null;
+    dm.setDrawingMode(mode);
+    if (!mode) setIsDrawing(false);
   }, [tool, ready]);
 
+  // Sync territories → polygons on the map
   useEffect(() => {
     if (!ready || !mapRef.current || !window.google) return;
     const map = mapRef.current;
@@ -166,12 +185,14 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
       if (!poly) {
         poly = new window.google.maps.Polygon(opts);
         poly.setMap(map);
-        poly.addListener('click', () => onSelect(t.id));
+        // Use refs so these listeners always call the current callbacks.
+        poly.addListener('click', () => onSelectRef.current?.(t.id));
         const persist = () => {
+          if (!onUpdatePathsRef.current) return;
           const newPaths = poly.getPaths().getArray().map(p =>
             p.getArray().map(ll => ({ lat: ll.lat(), lng: ll.lng() }))
           );
-          onUpdatePaths(t.id, newPaths);
+          onUpdatePathsRef.current(t.id, newPaths);
         };
         poly.getPaths().forEach(p => {
           window.google.maps.event.addListener(p, 'set_at', persist);
@@ -187,7 +208,7 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
     for (const [id, poly] of live.entries()) {
       if (!seen.has(id)) { poly.setMap(null); live.delete(id); }
     }
-  }, [territories, selectedId, tool, ready]);
+  }, [territories, selectedId, tool, ready, onUpdatePaths]);
 
   if (error) {
     return (
@@ -198,10 +219,19 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
     );
   }
 
+  const isDrawingMode = tool === 'polygon' || tool === 'rectangle';
+
   return (
     <div className="fp-map">
       <div ref={hostRef} className="fp-map-host" />
       {!ready && <div className="fp-map-loading">Loading Google Maps…</div>}
+      {ready && isDrawingMode && (
+        <div className="fp-draw-hint">
+          {tool === 'polygon'
+            ? 'Click to add points · Click the first point to close the shape'
+            : 'Click and drag to draw a rectangle'}
+        </div>
+      )}
     </div>
   );
 }
@@ -231,7 +261,6 @@ const CITY_PINS = [
   ['Fort Myers',  26.64, -81.87],
   ['Sarasota',    27.34, -82.53],
   ['Bradenton',   27.50, -82.57],
-  ['Parrish',     27.59, -82.42],
   ['Tampa',       27.95, -82.46],
   ['St. Pete',    27.77, -82.64],
   ['Lakeland',    28.04, -81.95],
@@ -261,7 +290,7 @@ function FallbackMap({ territories, selectedId, onSelect, onCreate, onUpdatePath
 
   function onCanvasDblClick() {
     if (tool === 'polygon' && draft && draft.points.length >= 3) {
-      onCreate([draft.points]);
+      if (onCreate) onCreate([draft.points]);
       setDraft(null);
     }
   }
@@ -273,7 +302,7 @@ function FallbackMap({ territories, selectedId, onSelect, onCreate, onUpdatePath
   }
 
   function onMouseDown(e) {
-    if (tool !== 'select' && tool !== 'pin') return;
+    if (tool !== 'select') return;
     if (e.button !== 0) return;
     if (e.target.tagName.toLowerCase() === 'polygon') return;
     dragRef.current = { sx: e.clientX, sy: e.clientY, ox: view.x, oy: view.y };
@@ -315,15 +344,7 @@ function FallbackMap({ territories, selectedId, onSelect, onCreate, onUpdatePath
             </linearGradient>
           </defs>
           <rect x="0" y="0" width={W} height={H} fill="url(#gulf-fb)" />
-          <path d="
-            M 1700 0 L 1700 1080 L 50 1080
-            L 80 1000 L 130 950 L 160 900 L 150 850 L 200 800
-            L 230 760 L 220 700 L 280 650 L 320 600 L 360 580
-            L 420 530 L 500 500 L 600 470 L 680 420 L 700 380
-            L 720 320 L 750 270 L 820 220 L 900 200 L 1000 180
-            L 1100 200 L 1200 220 L 1300 240 L 1400 260
-            L 1500 270 L 1600 280 L 1700 290 Z
-          " fill="#F4F7FA" stroke="#DDE5EC" strokeWidth="2" />
+          <path d="M 1700 0 L 1700 1080 L 50 1080 L 80 1000 L 130 950 L 160 900 L 150 850 L 200 800 L 230 760 L 220 700 L 280 650 L 320 600 L 360 580 L 420 530 L 500 500 L 600 470 L 680 420 L 700 380 L 720 320 L 750 270 L 820 220 L 900 200 L 1000 180 L 1100 200 L 1200 220 L 1300 240 L 1400 260 L 1500 270 L 1600 280 L 1700 290 Z" fill="#F4F7FA" stroke="#DDE5EC" strokeWidth="2" />
           <rect x="0" y="0" width={W} height={H} fill="url(#grid-fb)" pointerEvents="none" />
 
           {CITY_PINS.map(([name, lat, lng]) => {
@@ -371,8 +392,10 @@ function FallbackMap({ territories, selectedId, onSelect, onCreate, onUpdatePath
       </svg>
 
       {tool === 'polygon' && (
-        <div className="fp-map-help">
-          Click to add points · double-click to finish · {draft ? `${draft.points.length} points` : 'no points yet'}
+        <div className="fp-draw-hint">
+          {draft
+            ? `${draft.points.length} point${draft.points.length === 1 ? '' : 's'} — double-click to finish (need at least 3)`
+            : 'Click on the map to start drawing an area'}
         </div>
       )}
 
