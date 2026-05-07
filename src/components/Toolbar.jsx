@@ -6,7 +6,7 @@ const TOOLS = [
   { id: 'rectangle', Icon: Square,        label: 'Draw rectangle (R)' },
 ];
 
-export default function Toolbar({ tool, setTool, query, setQuery, savedAt, onSave, onUndo, onRedo, dirty, isEditor, onToggleEdit }) {
+export default function Toolbar({ tool, setTool, query, setQuery, onSave, onUndo, onRedo, dirty, isEditor, onToggleEdit }) {
   return (
     <div className="fp-toolbar">
       <div className="fp-toolbar-left">
@@ -49,16 +49,13 @@ export default function Toolbar({ tool, setTool, query, setQuery, savedAt, onSav
       <div className="fp-toolbar-right">
         {isEditor && (
           <>
-            <div className="fp-save-state">
-              <span className={'fp-dot' + (dirty ? ' dirty' : '')} />
-              {dirty ? 'Saving…' : (savedAt ? `Saved ${savedAt}` : 'Up to date')}
-            </div>
+            {dirty && <div className="fp-save-state"><span className="fp-dot dirty" /> Unsaved changes</div>}
             <button className="fp-btn fp-btn-primary" onClick={onSave}>
-              <Save /> Save now
+              <Save /> Save
             </button>
           </>
         )}
-        <button className="fp-btn fp-btn-secondary fp-lock-btn" onClick={onToggleEdit} title={isEditor ? 'Lock editing' : 'Unlock editing'}>
+        <button className="fp-btn fp-btn-secondary fp-lock-btn" onClick={onToggleEdit}>
           {isEditor ? <><Unlock size={15} /> Editing</> : <><Lock size={15} /> View only</>}
         </button>
       </div>
