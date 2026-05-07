@@ -159,7 +159,7 @@ function GoogleMap({ apiKey, territories, selectedId, onSelect, onCreate, onUpda
         strokeColor: isSelected ? '#0E2233' : t.color,
         strokeWeight: isSelected ? 2.5 : 1.5,
         strokeOpacity: 0.95,
-        editable: isSelected && tool === 'select',
+        editable: isSelected && tool === 'select' && !!onUpdatePaths,
         draggable: false,
         zIndex: isSelected ? 100 : 1,
       };

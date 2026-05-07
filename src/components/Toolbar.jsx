@@ -1,13 +1,12 @@
-import { MousePointer2, PenTool, Square, MapPin, CornerUpLeft, CornerUpRight, Search, Save } from 'lucide-react';
+import { MousePointer2, PenTool, Square, CornerUpLeft, CornerUpRight, Search, Save, Lock, Unlock } from 'lucide-react';
 
 const TOOLS = [
-  { id: 'select',    Icon: MousePointer2, label: 'Select & edit (V)' },
+  { id: 'select',    Icon: MousePointer2, label: 'Select (V)' },
   { id: 'polygon',   Icon: PenTool,       label: 'Draw polygon (P)' },
   { id: 'rectangle', Icon: Square,        label: 'Draw rectangle (R)' },
-  { id: 'pin',       Icon: MapPin,        label: 'Drop a pin' },
 ];
 
-export default function Toolbar({ tool, setTool, query, setQuery, savedAt, onSave, onUndo, onRedo, dirty }) {
+export default function Toolbar({ tool, setTool, query, setQuery, savedAt, onSave, onUndo, onRedo, dirty, isEditor, onToggleEdit }) {
   return (
     <div className="fp-toolbar">
       <div className="fp-toolbar-left">
@@ -29,29 +28,38 @@ export default function Toolbar({ tool, setTool, query, setQuery, savedAt, onSav
         </div>
       </div>
 
-      <div className="fp-tools">
-        {TOOLS.map(({ id, Icon, label }) => (
-          <button
-            key={id}
-            className={'fp-tool' + (tool === id ? ' on' : '')}
-            onClick={() => setTool(id)}
-            title={label}
-          >
-            <Icon />
-          </button>
-        ))}
-        <span className="fp-tool-divider" />
-        <button className="fp-tool" onClick={onUndo} title="Undo (Ctrl+Z)"><CornerUpLeft /></button>
-        <button className="fp-tool" onClick={onRedo} title="Redo (Ctrl+Y)"><CornerUpRight /></button>
-      </div>
+      {isEditor && (
+        <div className="fp-tools">
+          {TOOLS.map(({ id, Icon, label }) => (
+            <button
+              key={id}
+              className={'fp-tool' + (tool === id ? ' on' : '')}
+              onClick={() => setTool(id)}
+              title={label}
+            >
+              <Icon />
+            </button>
+          ))}
+          <span className="fp-tool-divider" />
+          <button className="fp-tool" onClick={onUndo} title="Undo (Ctrl+Z)"><CornerUpLeft /></button>
+          <button className="fp-tool" onClick={onRedo} title="Redo (Ctrl+Y)"><CornerUpRight /></button>
+        </div>
+      )}
 
       <div className="fp-toolbar-right">
-        <div className="fp-save-state">
-          <span className={'fp-dot' + (dirty ? ' dirty' : '')} />
-          {dirty ? 'Unsaved changes' : (savedAt ? `Saved ${savedAt}` : 'Up to date')}
-        </div>
-        <button className="fp-btn fp-btn-primary" onClick={onSave}>
-          <Save /> Save
+        {isEditor && (
+          <>
+            <div className="fp-save-state">
+              <span className={'fp-dot' + (dirty ? ' dirty' : '')} />
+              {dirty ? 'Saving…' : (savedAt ? `Saved ${savedAt}` : 'Up to date')}
+            </div>
+            <button className="fp-btn fp-btn-primary" onClick={onSave}>
+              <Save /> Save now
+            </button>
+          </>
+        )}
+        <button className="fp-btn fp-btn-secondary fp-lock-btn" onClick={onToggleEdit} title={isEditor ? 'Lock editing' : 'Unlock editing'}>
+          {isEditor ? <><Unlock size={15} /> Editing</> : <><Lock size={15} /> View only</>}
         </button>
       </div>
     </div>

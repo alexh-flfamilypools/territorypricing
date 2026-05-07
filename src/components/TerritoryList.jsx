@@ -1,6 +1,6 @@
 import { Trash2, Plus } from 'lucide-react';
 
-export default function TerritoryList({ territories, selectedId, onSelect, onAdd, onDelete, query }) {
+export default function TerritoryList({ territories, selectedId, onSelect, onAdd, onDelete, query, isEditor }) {
   const filtered = territories.filter(t => {
     if (!query) return true;
     const q = query.toLowerCase();
@@ -18,7 +18,9 @@ export default function TerritoryList({ territories, selectedId, onSelect, onAdd
         {filtered.length === 0 && (
           <div className="fp-list-empty">
             {territories.length === 0
-              ? 'No areas yet. Pick a drawing tool and trace a neighborhood on the map.'
+              ? isEditor
+                ? 'No areas yet. Pick a drawing tool and trace a neighborhood on the map.'
+                : 'No areas added yet.'
               : 'Nothing matches that search.'}
           </div>
         )}
@@ -39,24 +41,28 @@ export default function TerritoryList({ territories, selectedId, onSelect, onAdd
                     : <span style={{ color: 'var(--fg-4)' }}>No price set</span>}
                 </div>
               </div>
-              <button
-                className="fp-list-item-del"
-                onClick={e => {
-                  e.stopPropagation();
-                  if (window.confirm(`Delete "${t.name || 'this area'}"?`)) onDelete(t.id);
-                }}
-                title="Delete"
-              >
-                <Trash2 />
-              </button>
+              {isEditor && (
+                <button
+                  className="fp-list-item-del"
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (window.confirm(`Delete "${t.name || 'this area'}"?`)) onDelete(t.id);
+                  }}
+                  title="Delete"
+                >
+                  <Trash2 />
+                </button>
+              )}
             </button>
           );
         })}
       </div>
 
-      <button className="fp-btn fp-btn-secondary fp-list-add" onClick={onAdd}>
-        <Plus /> New priced area
-      </button>
+      {isEditor && (
+        <button className="fp-btn fp-btn-secondary fp-list-add" onClick={onAdd}>
+          <Plus /> New priced area
+        </button>
+      )}
     </aside>
   );
 }
