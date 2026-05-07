@@ -1,17 +1,35 @@
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 
 export default function TerritoryList({ territories, selectedId, onSelect, onAdd, onDelete, query, isEditor }) {
+  const [collapsed, setCollapsed] = useState(false);
+
   const filtered = territories.filter(t => {
     if (!query) return true;
     const q = query.toLowerCase();
     return (t.name || '').toLowerCase().includes(q) || (t.notes || '').toLowerCase().includes(q);
   });
 
+  if (collapsed) {
+    return (
+      <aside className="fp-list fp-list-collapsed">
+        <button className="fp-list-toggle" onClick={() => setCollapsed(false)} title="Show areas">
+          <ChevronRight size={16} />
+        </button>
+      </aside>
+    );
+  }
+
   return (
     <aside className="fp-list">
       <div className="fp-list-head">
         <div className="fp-list-title">Priced areas</div>
-        <div className="fp-list-count">{territories.length}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="fp-list-count">{territories.length}</div>
+          <button className="fp-list-toggle" onClick={() => setCollapsed(true)} title="Hide panel">
+            <ChevronLeft size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="fp-list-body">
