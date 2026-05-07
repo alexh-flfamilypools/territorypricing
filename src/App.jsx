@@ -38,7 +38,7 @@ export default function App() {
       if (!snap.exists()) { applyTerritories([]); return; }
       const data = snap.data();
       if (data.updatedBy === SESSION_ID) return; // skip echoes of our own saves
-      applyTerritories(data.territories || []);
+      applyTerritories(fromFirestore(data.territories));
       setDirty(false);
     }, err => {
       console.error('Firestore:', err);
@@ -47,9 +47,25 @@ export default function App() {
     return unsub;
   }, []);
 
+  function toFirestore(territories) {
+    return territories.map(t => ({
+      ...t,
+      rings: (t.paths || []).map(ring => ({ points: ring })),
+      paths: null,
+    }));
+  }
+
+  function fromFirestore(territories) {
+    return (territories || []).map(t => ({
+      ...t,
+      paths: (t.rings || []).map(r => r.points || []),
+      rings: null,
+    }));
+  }
+
   async function persistToFirestore(terrs) {
     try {
-      await setDoc(MAP_DOC, { territories: terrs, updatedAt: Date.now(), updatedBy: SESSION_ID });
+      await setDoc(MAP_DOC, { territories: toFirestore(terrs), updatedAt: Date.now(), updatedBy: SESSION_ID });
       setDirty(false);
       showToast(`Saved · ${terrs.length} area${terrs.length === 1 ? '' : 's'}`);
     } catch (err) {
