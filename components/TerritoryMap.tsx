@@ -31,7 +31,7 @@ interface Props {
   onTerritoryEdited: (id: string, coords: LatLng[]) => void
 }
 
-const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''
 
 export default function TerritoryMap({
   territories,
