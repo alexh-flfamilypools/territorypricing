@@ -1,7 +1,4 @@
-'use client'
-
-import dynamic from 'next/dynamic'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Territory, LatLng } from '@/lib/types'
 import {
   loadTerritories,
@@ -12,27 +9,17 @@ import {
 import TerritoryPanel from '@/components/TerritoryPanel'
 import { v4 as uuidv4 } from 'uuid'
 
-// Dynamically import the map so it never renders server-side (Google Maps needs the browser)
-const TerritoryMap = dynamic(() => import('@/components/TerritoryMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex-1 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
-      Loading map…
-    </div>
-  ),
-})
+const TerritoryMap = lazy(() => import('@/components/TerritoryMap'))
 
-export default function Home() {
+export default function App() {
   const [territories, setTerritories] = useState<Territory[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawingMode, setDrawingMode] = useState(false)
 
-  // Hydrate from localStorage on mount
   useEffect(() => {
     setTerritories(loadTerritories())
   }, [])
 
-  // Persist on every change
   useEffect(() => {
     if (territories.length > 0) saveTerritories(territories)
   }, [territories])
@@ -98,14 +85,22 @@ export default function Home() {
   return (
     <div className="flex h-full">
       <div className="flex-1 relative">
-        <TerritoryMap
-          territories={territories}
-          selectedId={selectedId}
-          drawingMode={drawingMode}
-          onSelectTerritory={handleSelectTerritory}
-          onTerritoryDrawn={handleTerritoryDrawn}
-          onTerritoryEdited={handleTerritoryEdited}
-        />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500 text-sm">
+              Loading map…
+            </div>
+          }
+        >
+          <TerritoryMap
+            territories={territories}
+            selectedId={selectedId}
+            drawingMode={drawingMode}
+            onSelectTerritory={handleSelectTerritory}
+            onTerritoryDrawn={handleTerritoryDrawn}
+            onTerritoryEdited={handleTerritoryEdited}
+          />
+        </Suspense>
       </div>
       <TerritoryPanel
         territories={territories}
