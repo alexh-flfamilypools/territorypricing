@@ -33,6 +33,8 @@ interface Props {
   onTerritoryEdited: (id: string, coords: LatLng[]) => void
 }
 
+const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
+
 export default function TerritoryMap({
   territories,
   selectedId,
@@ -42,7 +44,7 @@ export default function TerritoryMap({
   onTerritoryEdited,
 }: Props) {
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? '',
+    googleMapsApiKey: MAPS_API_KEY,
     libraries: LIBRARIES,
   })
 
@@ -90,6 +92,11 @@ export default function TerritoryMap({
   const attachPathListeners = useCallback(
     (id: string, polygon: google.maps.Polygon) => {
       const path = polygon.getPath()
+      // Clear any stale listeners before adding fresh ones (prevents duplicates
+      // when the Polygon remounts due to editable/options prop changes)
+      google.maps.event.clearListeners(path, 'set_at')
+      google.maps.event.clearListeners(path, 'insert_at')
+      google.maps.event.clearListeners(path, 'remove_at')
       const emit = () => onTerritoryEdited(id, getPathCoords(polygon))
       path.addListener('set_at', emit)
       path.addListener('insert_at', emit)
@@ -107,14 +114,37 @@ export default function TerritoryMap({
   )
 
   const handlePolygonUnmount = useCallback((id: string) => {
+    const polygon = polygonRefs.current.get(id)
+    if (polygon) {
+      google.maps.event.clearListeners(polygon.getPath(), 'set_at')
+      google.maps.event.clearListeners(polygon.getPath(), 'insert_at')
+      google.maps.event.clearListeners(polygon.getPath(), 'remove_at')
+    }
     polygonRefs.current.delete(id)
   }, [])
 
+  if (!MAPS_API_KEY) {
+    return (
+      <div className="flex items-center justify-center h-full bg-yellow-50 text-yellow-800 text-sm p-6 text-center">
+        <div>
+          <p className="font-semibold mb-1">Google Maps API key not configured.</p>
+          <p>
+            Copy <code className="bg-yellow-100 px-1 rounded">.env.local.example</code> to{' '}
+            <code className="bg-yellow-100 px-1 rounded">.env.local</code> and set{' '}
+            <code className="bg-yellow-100 px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (loadError) {
     return (
-      <div className="flex items-center justify-center h-full bg-gray-100 text-red-600 text-sm p-4">
-        Failed to load Google Maps. Check your API key in{' '}
-        <code className="ml-1">.env.local</code>.
+      <div className="flex items-center justify-center h-full bg-red-50 text-red-700 text-sm p-6 text-center">
+        <div>
+          <p className="font-semibold mb-1">Failed to load Google Maps.</p>
+          <p>Check that your API key in <code className="bg-red-100 px-1 rounded">.env.local</code> is valid and has the Maps JavaScript API enabled.</p>
+        </div>
       </div>
     )
   }
