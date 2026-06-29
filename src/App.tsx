@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import React, { Component, lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Territory, LatLng } from '@/lib/types'
 import {
   loadTerritories,
@@ -10,6 +10,37 @@ import TerritoryPanel from '@/components/TerritoryPanel'
 import { v4 as uuidv4 } from 'uuid'
 
 const TerritoryMap = lazy(() => import('@/components/TerritoryMap'))
+
+class MapErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null }
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex items-center justify-center h-full bg-red-50 text-red-700 text-sm p-6 text-center">
+          <div>
+            <p className="font-semibold mb-1">Map failed to render.</p>
+            <p className="text-xs text-red-500 mb-3 font-mono">
+              {(this.state.error as Error).message}
+            </p>
+            <button
+              onClick={() => this.setState({ error: null })}
+              className="px-3 py-1 bg-red-100 rounded hover:bg-red-200"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 export default function App() {
   const [territories, setTerritories] = useState<Territory[]>([])
@@ -85,22 +116,24 @@ export default function App() {
   return (
     <div className="flex h-full">
       <div className="flex-1 relative">
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500 text-sm">
-              Loading map…
-            </div>
-          }
-        >
-          <TerritoryMap
-            territories={territories}
-            selectedId={selectedId}
-            drawingMode={drawingMode}
-            onSelectTerritory={handleSelectTerritory}
-            onTerritoryDrawn={handleTerritoryDrawn}
-            onTerritoryEdited={handleTerritoryEdited}
-          />
-        </Suspense>
+        <MapErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-full bg-gray-100 text-gray-500 text-sm">
+                Loading map…
+              </div>
+            }
+          >
+            <TerritoryMap
+              territories={territories}
+              selectedId={selectedId}
+              drawingMode={drawingMode}
+              onSelectTerritory={handleSelectTerritory}
+              onTerritoryDrawn={handleTerritoryDrawn}
+              onTerritoryEdited={handleTerritoryEdited}
+            />
+          </Suspense>
+        </MapErrorBoundary>
       </div>
       <TerritoryPanel
         territories={territories}

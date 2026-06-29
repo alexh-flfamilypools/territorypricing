@@ -1,24 +1,17 @@
-import React, { useCallback, useRef, useState } from 'react'
-import {
-  GoogleMap,
-  useJsApiLoader,
-  Polygon,
-  Polyline,
-} from '@react-google-maps/api'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { GoogleMap, useJsApiLoader, Polygon, Polyline } from '@react-google-maps/api'
 import { Territory, LatLng } from '@/lib/types'
 import { SWFL_CENTER, SWFL_ZOOM } from '@/lib/territories'
 
-// DrawingManager was removed in Maps JS API v3.65 — we draw manually via clicks.
-const LIBRARIES: ('geometry')[] = ['geometry']
+// No extra libraries needed — DrawingManager was removed in Maps JS API v3.65
+const LIBRARIES: never[] = []
 
 const MAP_OPTIONS: google.maps.MapOptions = {
   mapTypeId: 'roadmap',
-  disableDefaultUI: false,
   zoomControl: true,
   streetViewControl: false,
   mapTypeControl: true,
   fullscreenControl: true,
-  mapTypeControlOptions: { style: 2 },
 }
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''
@@ -45,49 +38,57 @@ export default function TerritoryMap({
     libraries: LIBRARIES,
   })
 
-  const mapRef = useRef<google.maps.Map | null>(null)
-  const polygonRefs = useRef<Map<string, google.maps.Polygon>>(new Map())
   const [pendingCoords, setPendingCoords] = useState<LatLng[]>([])
 
-  const handleMapLoad = useCallback((map: google.maps.Map) => {
-    mapRef.current = map
-  }, [])
+  // Keep refs current so stable callbacks always see the latest values
+  const drawingModeRef = useRef(drawingMode)
+  const onSelectTerritoryRef = useRef(onSelectTerritory)
+  const onTerritoryDrawnRef = useRef(onTerritoryDrawn)
+  const pendingCoordsRef = useRef<LatLng[]>([])
 
-  // Add a vertex while in drawing mode; ignore double-click ghost events
-  const handleMapClick = useCallback(
-    (e: google.maps.MapMouseEvent) => {
-      if (!drawingMode || !e.latLng) return
-      setPendingCoords((prev) => [...prev, { lat: e.latLng!.lat(), lng: e.latLng!.lng() }])
-    },
-    [drawingMode]
-  )
+  useEffect(() => { drawingModeRef.current = drawingMode }, [drawingMode])
+  useEffect(() => { onSelectTerritoryRef.current = onSelectTerritory }, [onSelectTerritory])
+  useEffect(() => { onTerritoryDrawnRef.current = onTerritoryDrawn }, [onTerritoryDrawn])
+  useEffect(() => { pendingCoordsRef.current = pendingCoords }, [pendingCoords])
 
-  // Double-click finalises the polygon (also fires a click so we trim the last duplicate point)
-  const handleMapDblClick = useCallback(
-    (e: google.maps.MapMouseEvent) => {
-      if (!drawingMode || !e.latLng) return
-      e.stop?.()
-      setPendingCoords((prev) => {
-        const coords = prev.length >= 3 ? prev.slice(0, -1) : prev // remove dblclick ghost
-        if (coords.length >= 3) {
-          onTerritoryDrawn(coords)
-        }
-        return []
-      })
-    },
-    [drawingMode, onTerritoryDrawn]
-  )
+  // Clear in-progress drawing when mode is cancelled
+  useEffect(() => {
+    if (!drawingMode) setPendingCoords([])
+  }, [drawingMode])
+
+  const polygonRefs = useRef<Map<string, google.maps.Polygon>>(new Map())
+
+  // Single stable click handler — no prop changes between renders
+  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (!e.latLng) return
+    if (drawingModeRef.current) {
+      const coord: LatLng = { lat: e.latLng.lat(), lng: e.latLng.lng() }
+      setPendingCoords((prev) => [...prev, coord])
+    } else {
+      onSelectTerritoryRef.current(null)
+    }
+  }, []) // empty deps — reads via refs at call time
+
+  // Double-click finishes the polygon; also fires a single click first so trim last point
+  const handleMapDblClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (!drawingModeRef.current || !e.latLng) return
+    const current = pendingCoordsRef.current
+    const trimmed = current.length > 0 ? current.slice(0, -1) : current
+    if (trimmed.length >= 3) {
+      setPendingCoords([])
+      onTerritoryDrawnRef.current(trimmed)
+    }
+  }, []) // empty deps — reads via refs at call time
 
   const finishDrawing = useCallback(() => {
-    setPendingCoords((prev) => {
-      if (prev.length >= 3) onTerritoryDrawn(prev)
-      return []
-    })
-  }, [onTerritoryDrawn])
-
-  const cancelDrawing = useCallback(() => {
-    setPendingCoords([])
+    const coords = pendingCoordsRef.current
+    if (coords.length >= 3) {
+      setPendingCoords([])
+      onTerritoryDrawnRef.current(coords)
+    }
   }, [])
+
+  const cancelDrawing = useCallback(() => setPendingCoords([]), [])
 
   const getPathCoords = (polygon: google.maps.Polygon): LatLng[] => {
     const path = polygon.getPath()
@@ -124,9 +125,10 @@ export default function TerritoryMap({
   const handlePolygonUnmount = useCallback((id: string) => {
     const polygon = polygonRefs.current.get(id)
     if (polygon) {
-      google.maps.event.clearListeners(polygon.getPath(), 'set_at')
-      google.maps.event.clearListeners(polygon.getPath(), 'insert_at')
-      google.maps.event.clearListeners(polygon.getPath(), 'remove_at')
+      const path = polygon.getPath()
+      google.maps.event.clearListeners(path, 'set_at')
+      google.maps.event.clearListeners(path, 'insert_at')
+      google.maps.event.clearListeners(path, 'remove_at')
     }
     polygonRefs.current.delete(id)
   }, [])
@@ -164,7 +166,6 @@ export default function TerritoryMap({
     )
   }
 
-  // Close the preview loop by appending the first point again
   const previewPath =
     pendingCoords.length > 1 ? [...pendingCoords, pendingCoords[0]] : pendingCoords
 
@@ -174,13 +175,8 @@ export default function TerritoryMap({
         mapContainerStyle={{ width: '100%', height: '100%' }}
         center={SWFL_CENTER}
         zoom={SWFL_ZOOM}
-        options={{
-          ...MAP_OPTIONS,
-          // Show crosshair cursor while drawing
-          draggableCursor: drawingMode ? 'crosshair' : undefined,
-        }}
-        onLoad={handleMapLoad}
-        onClick={drawingMode ? handleMapClick : () => onSelectTerritory(null)}
+        options={MAP_OPTIONS}
+        onClick={handleMapClick}
         onDblClick={handleMapDblClick}
       >
         {territories.map((territory) => {
@@ -199,36 +195,36 @@ export default function TerritoryMap({
                 draggable: false,
                 zIndex: isSelected ? 10 : 1,
               }}
-              onClick={() => !drawingMode && onSelectTerritory(territory.id)}
+              onClick={() => {
+                if (!drawingModeRef.current) onSelectTerritoryRef.current(territory.id)
+              }}
               onLoad={(polygon) => handlePolygonLoad(territory.id, polygon)}
               onUnmount={() => handlePolygonUnmount(territory.id)}
             />
           )
         })}
 
-        {/* Live preview of the polygon being drawn */}
-        {drawingMode && pendingCoords.length > 0 && (
+        {pendingCoords.length > 0 && (
           <Polyline
             path={previewPath}
             options={{
               strokeColor: '#6366F1',
               strokeWeight: 2,
               strokeOpacity: 0.9,
-              icons: [],
             }}
           />
         )}
       </GoogleMap>
 
-      {/* Drawing HUD — shown on top of the map while drawing */}
+      {/* Drawing HUD */}
       {drawingMode && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-white rounded-xl shadow-lg px-4 py-3 text-sm z-10">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-white rounded-xl shadow-lg px-4 py-3 text-sm z-10 whitespace-nowrap">
           <span className="text-gray-600">
             {pendingCoords.length === 0
-              ? 'Click to place vertices'
+              ? 'Click map to place vertices'
               : pendingCoords.length < 3
               ? `${pendingCoords.length} point${pendingCoords.length > 1 ? 's' : ''} — need at least 3`
-              : `${pendingCoords.length} points — double-click or`}
+              : `${pendingCoords.length} points`}
           </span>
           {pendingCoords.length >= 3 && (
             <button
